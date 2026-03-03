@@ -1,0 +1,10 @@
+fastapi>=0.115.0
+uvicorn>=0.34.0
+faster-whisper>=1.1.0
+python-dotenv>=1.0.1
+aiofiles>=24.1.0
+sqlite-utils>=3.38
+tqdm>=4.67.0
+requests>=2.32.0
+sse-starlette>=2.2.0
+playwright>=1.49.0

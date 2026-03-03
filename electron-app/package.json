@@ -1,0 +1,82 @@
+{
+  "name": "ai-learning-hub-desktop",
+  "version": "1.0.0",
+  "description": "AI Learning Hub - Desktop App for NotebookLM Integration",
+  "main": "main.js",
+  "scripts": {
+    "start": "unset NODE_OPTIONS && electron .",
+    "dev": "concurrently \"npm run start:backend\" \"npm run start:frontend\" \"wait-on http://localhost:3000 && electron .\"",
+    "start:backend": "cd ../backend && source ../venv314/bin/activate && python -m uvicorn main:app --port 8000",
+    "start:frontend": "cd ../frontend && npm run dev",
+    "build": "npm run build:frontend && electron-builder",
+    "build:frontend": "cd ../frontend && npm run build",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder",
+    "dist:mac": "electron-builder --mac",
+    "dist:win": "electron-builder --win",
+    "dist:linux": "electron-builder --linux"
+  },
+  "build": {
+    "appId": "com.ailearninghub.desktop",
+    "productName": "AI Learning Hub",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "../backend",
+        "to": "backend",
+        "filter": [
+          "**/*",
+          "!__pycache__",
+          "!*.pyc",
+          "!.playwright_profile"
+        ]
+      },
+      {
+        "from": "../frontend/.next",
+        "to": "frontend/.next"
+      },
+      {
+        "from": "../frontend/public",
+        "to": "frontend/public"
+      }
+    ],
+    "mac": {
+      "category": "public.app-category.productivity",
+      "icon": "icons/icon.icns",
+      "target": [
+        "dmg",
+        "zip"
+      ]
+    },
+    "win": {
+      "icon": "icons/icon.ico",
+      "target": [
+        "nsis",
+        "portable"
+      ]
+    },
+    "linux": {
+      "icon": "icons",
+      "target": [
+        "AppImage",
+        "deb"
+      ]
+    }
+  },
+  "dependencies": {
+    "electron-is-dev": "^3.0.1"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0",
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8",
+    "wait-on": "^8.0.1"
+  }
+}

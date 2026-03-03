@@ -1,0 +1,46 @@
+# Dependencies
+node_modules/
+venv*/
+__pycache__/
+*.pyc
+
+# Build outputs
+.next/
+dist/
+out/
+
+# Environment
+.env
+.env.local
+.env*.local
+
+# Database
+*.sqlite3
+*.db
+
+# Uploads (user files)
+backend/uploads/
+
+# Playwright
+.playwright_profile/
+backend/.playwright_profile/
+
+# Electron
+electron-app/dist/
+electron-app/node_modules/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Transcripts (generated)
+backend/transcripts/
+
+# Test files
+test_single2.py
+*.mp4
