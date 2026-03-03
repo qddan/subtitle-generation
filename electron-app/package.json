@@ -1,20 +1,18 @@
 {
   "name": "video2text-desktop",
   "version": "1.0.0",
-  "description": "Video2Text - Convert video to text using Whisper AI",
+  "description": "Video2Text - Standalone desktop app for video-to-text transcription using Whisper AI. Bundles backend + frontend for full local processing.",
   "main": "main.js",
   "scripts": {
-    "start": "unset NODE_OPTIONS && electron .",
-    "dev": "concurrently \"npm run start:backend\" \"npm run start:frontend\" \"wait-on http://localhost:3000 && electron .\"",
-    "start:backend": "cd ../backend && source ../venv314/bin/activate && python -m uvicorn main:app --port 8000",
-    "start:frontend": "cd ../frontend && npm run dev",
+    "start": "NODE_OPTIONS='' electron .",
+    "dev": "cd ../frontend && NEXT_EXPORT=true NEXT_PUBLIC_API_BASE=http://localhost:8000 npm run build && cd ../electron-app && electron .",
+    "build:frontend": "cd ../frontend && NEXT_EXPORT=true NEXT_PUBLIC_API_BASE=http://localhost:8000 npm run build",
     "build": "npm run build:frontend && electron-builder",
-    "build:frontend": "cd ../frontend && npm run build",
-    "pack": "electron-builder --dir",
-    "dist": "electron-builder",
-    "dist:mac": "electron-builder --mac",
-    "dist:win": "electron-builder --win",
-    "dist:linux": "electron-builder --linux"
+    "pack": "npm run build:frontend && electron-builder --dir",
+    "dist": "npm run build:frontend && electron-builder",
+    "dist:mac": "npm run build:frontend && electron-builder --mac",
+    "dist:win": "npm run build:frontend && electron-builder --win",
+    "dist:linux": "npm run build:frontend && electron-builder --linux"
   },
   "build": {
     "appId": "com.video2text.desktop",
@@ -25,7 +23,16 @@
     "files": [
       "main.js",
       "preload.js",
-      "package.json"
+      "splash.html",
+      "package.json",
+      "node_modules/serve-handler/**/*",
+      "node_modules/mime-types/**/*",
+      "node_modules/mime-db/**/*",
+      "node_modules/path-is-inside/**/*",
+      "node_modules/path-to-regexp/**/*",
+      "node_modules/range-parser/**/*",
+      "node_modules/content-disposition/**/*",
+      "node_modules/safe-buffer/**/*"
     ],
     "extraResources": [
       {
@@ -33,50 +40,57 @@
         "to": "backend",
         "filter": [
           "**/*",
-          "!__pycache__",
-          "!*.pyc",
-          "!.playwright_profile"
+          "!__pycache__/**",
+          "!**/__pycache__/**",
+          "!**/*.pyc",
+          "!tests/**",
+          "!db.sqlite3",
+          "!uploads/**",
+          "!transcripts/**",
+          "!.playwright_profile/**",
+          "!notebooklm.py",
+          "!browser.py"
         ]
       },
       {
-        "from": "../frontend/.next",
-        "to": "frontend/.next"
-      },
-      {
-        "from": "../frontend/public",
-        "to": "frontend/public"
+        "from": "../frontend/out",
+        "to": "frontend",
+        "filter": [
+          "**/*"
+        ]
       }
     ],
     "mac": {
       "category": "public.app-category.productivity",
-      "icon": "icons/icon.icns",
       "target": [
         "dmg",
         "zip"
-      ]
+      ],
+      "hardenedRuntime": false,
+      "gatekeeperAssess": false
     },
     "win": {
-      "icon": "icons/icon.ico",
       "target": [
         "nsis",
         "portable"
       ]
     },
     "linux": {
-      "icon": "icons",
       "target": [
         "AppImage",
         "deb"
       ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
     }
   },
   "dependencies": {
-    "electron-is-dev": "^3.0.1"
+    "serve-handler": "^6.1.6"
   },
   "devDependencies": {
-    "concurrently": "^9.1.0",
     "electron": "^33.2.0",
-    "electron-builder": "^25.1.8",
-    "wait-on": "^8.0.1"
+    "electron-builder": "^25.1.8"
   }
 }
