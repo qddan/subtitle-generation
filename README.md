@@ -7,6 +7,8 @@
 ![Next.js](https://img.shields.io/badge/Next.js-15-black.svg)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-teal.svg)
 
+**Live Demo**: [https://frontend-jet-theta-nvf68h8ewg.vercel.app](https://frontend-jet-theta-nvf68h8ewg.vercel.app)
+
 ---
 
 ## Screenshots
@@ -208,11 +210,25 @@ npm run dist:linux # Linux
 ## Development
 
 ```bash
-# Terminal 1: Backend
-cd backend && source ../venv/bin/activate && uvicorn main:app --reload --port 8000
+# Option 1: Run both (from root)
+npm start
 
-# Terminal 2: Frontend
+# Option 2: Run separately (from root)
+npm run start:backend
+npm run start:frontend
+
+# Option 3: Using Make
+make start
+
+# Option 4: Manual
+cd backend && python -m uvicorn main:app --reload --port 8000
 cd frontend && npm run dev
+
+# Run tests
+npm test
+
+# Kill running servers
+npm run kill
 ```
 
 ---
