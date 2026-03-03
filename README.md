@@ -11,9 +11,9 @@
 
 ## Screenshots
 
-| Dashboard                            | Files                         |
-| ------------------------------------ | ----------------------------- |
-| Upload video, xem progress real-time | Quản lý files, xem transcript |
+| Dashboard                                   | Files                               |
+| ------------------------------------------- | ----------------------------------- |
+| ![Dashboard](docs/screenshot-dashboard.png) | ![Files](docs/screenshot-files.png) |
 
 ---
 
