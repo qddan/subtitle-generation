@@ -205,28 +205,25 @@ async def add_folder(request: Request):
 
 @app.get("/api/files")
 def list_files():
-    """Scan LOCAL_FOLDER and upsert files into the database."""
+    """List files from the database. Only auto-scan LOCAL_FOLDER for mp4 videos."""
     db = get_db()
     now = datetime.utcnow().isoformat()
 
-    found = []
-    for f in os.listdir(LOCAL_FOLDER):
-        ftype = detect_filetype(f)
-        if ftype is None:
-            continue
-        fpath = os.path.join(LOCAL_FOLDER, f)
-        if not os.path.isfile(fpath):
-            continue
-        found.append((f, fpath, ftype))
-
-    for filename, filepath, filetype in found:
-        existing = db.execute("SELECT id FROM files WHERE filepath = ?", (filepath,)).fetchone()
-        if existing is None:
-            db.execute(
-                "INSERT INTO files (filename, filepath, filetype, status, created_at, updated_at) VALUES (?,?,?,?,?,?)",
-                (filename, filepath, filetype, "pending", now, now),
-            )
-    db.commit()
+    if os.path.isdir(LOCAL_FOLDER):
+        for f in os.listdir(LOCAL_FOLDER):
+            ftype = detect_filetype(f)
+            if ftype != "mp4":
+                continue
+            fpath = os.path.join(LOCAL_FOLDER, f)
+            if not os.path.isfile(fpath):
+                continue
+            existing = db.execute("SELECT id FROM files WHERE filepath = ?", (fpath,)).fetchone()
+            if existing is None:
+                db.execute(
+                    "INSERT INTO files (filename, filepath, filetype, status, created_at, updated_at) VALUES (?,?,?,?,?,?)",
+                    (f, fpath, ftype, "pending", now, now),
+                )
+        db.commit()
 
     rows = db.execute(
         "SELECT id, filename, filetype, status, word_count, duration_sec FROM files ORDER BY filename"
