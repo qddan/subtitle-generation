@@ -1,10 +1,9 @@
 services:
   - type: web
-    name: video2text-api
+    name: subtitle-generation
     runtime: python
-    rootDir: backend
-    buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: LOCAL_FOLDER
         value: .
@@ -15,7 +14,7 @@ services:
       - key: LANGUAGE
         value: vi
       - key: ALLOWED_ORIGINS
-        sync: false
+        value: https://frontend-jet-theta-nvf68h8ewg.vercel.app
       - key: MAX_UPLOAD_SIZE
         value: "524288000"
     plan: free
