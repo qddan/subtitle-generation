@@ -18,7 +18,9 @@ jobs:
         with:
           python-version: "3.11"
       - run: pip install -r requirements.txt
+      - run: pip install pytest httpx
       - run: python -c "import main; print('Backend imports OK')"
+      - run: python -m pytest tests/test_api.py -v
 
   frontend-build:
     runs-on: ubuntu-latest

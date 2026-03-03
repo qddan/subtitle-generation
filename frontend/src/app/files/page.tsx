@@ -1,7 +1,14 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { RefreshCw, Play, Eye, Loader2, FileText, FileVideo, Link2, Presentation } from "lucide-react";
+import {
+  RefreshCw,
+  Play,
+  Eye,
+  Loader2,
+  FileText,
+  FileVideo,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -34,11 +41,12 @@ interface Transcript {
 const typeIcons: Record<string, React.ReactNode> = {
   mp4: <FileVideo className="h-4 w-4 text-blue-500" />,
   txt: <FileText className="h-4 w-4 text-emerald-500" />,
-  url: <Link2 className="h-4 w-4 text-violet-500" />,
-  slides: <Presentation className="h-4 w-4 text-amber-500" />,
 };
 
-const statusVariant: Record<string, "pending" | "processing" | "done" | "error"> = {
+const statusVariant: Record<
+  string,
+  "pending" | "processing" | "done" | "error"
+> = {
   pending: "pending",
   processing: "processing",
   done: "done",
@@ -104,7 +112,8 @@ export default function FilesPage() {
       const data = await apiFetch<Transcript>(`/api/transcript/${id}`);
       setViewTranscript(data);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Failed to load transcript";
+      const msg =
+        err instanceof Error ? err.message : "Failed to load transcript";
       toast.error(msg);
       setDialogOpen(false);
     } finally {
@@ -117,7 +126,9 @@ export default function FilesPage() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Files</h2>
-          <p className="text-muted-foreground">Manage and process your source files</p>
+          <p className="text-muted-foreground">
+            Manage and process your source files
+          </p>
         </div>
         <Button onClick={() => fetchFiles(true)} disabled={scanning}>
           {scanning ? (
@@ -152,7 +163,8 @@ export default function FilesPage() {
               <FileText className="h-12 w-12 text-muted-foreground/50 mb-4" />
               <h3 className="text-lg font-semibold">No files found</h3>
               <p className="text-sm text-muted-foreground mt-1">
-                Add .mp4, .url, or .txt files to your local folder, then click &quot;Scan Folder&quot;
+                Add .mp4, .url, or .txt files to your local folder, then click
+                &quot;Scan Folder&quot;
               </p>
             </div>
           ) : (
@@ -174,25 +186,36 @@ export default function FilesPage() {
                       key={file.id}
                       className="border-b last:border-0 hover:bg-muted/50 transition-colors"
                     >
-                      <td className="py-3 pr-4 text-muted-foreground">{idx + 1}</td>
+                      <td className="py-3 pr-4 text-muted-foreground">
+                        {idx + 1}
+                      </td>
                       <td className="py-3 pr-4 font-medium">{file.filename}</td>
                       <td className="py-3 pr-4">
                         <div className="flex items-center gap-1.5">
-                          {typeIcons[file.filetype] || <FileText className="h-4 w-4" />}
-                          <span className="uppercase text-xs">{file.filetype}</span>
+                          {typeIcons[file.filetype] || (
+                            <FileText className="h-4 w-4" />
+                          )}
+                          <span className="uppercase text-xs">
+                            {file.filetype}
+                          </span>
                         </div>
                       </td>
                       <td className="py-3 pr-4">
-                        <Badge variant={statusVariant[file.status] || "secondary"}>
+                        <Badge
+                          variant={statusVariant[file.status] || "secondary"}
+                        >
                           {file.status}
                         </Badge>
                       </td>
                       <td className="py-3 pr-4">
-                        {file.word_count > 0 ? formatNumber(file.word_count) : "—"}
+                        {file.word_count > 0
+                          ? formatNumber(file.word_count)
+                          : "—"}
                       </td>
                       <td className="py-3 text-right">
                         <div className="flex items-center justify-end gap-2">
-                          {(file.status === "pending" || file.status === "error") && (
+                          {(file.status === "pending" ||
+                            file.status === "error") && (
                             <Button
                               size="sm"
                               variant="outline"
@@ -238,9 +261,13 @@ export default function FilesPage() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-h-[80vh] overflow-hidden flex flex-col">
           <DialogHeader>
-            <DialogTitle>{viewTranscript?.filename || "Transcript"}</DialogTitle>
+            <DialogTitle>
+              {viewTranscript?.filename || "Transcript"}
+            </DialogTitle>
             <DialogDescription>
-              {viewTranscript ? `${formatNumber(viewTranscript.word_count)} words` : "Loading..."}
+              {viewTranscript
+                ? `${formatNumber(viewTranscript.word_count)} words`
+                : "Loading..."}
             </DialogDescription>
           </DialogHeader>
           <div className="flex-1 overflow-y-auto rounded-lg bg-muted/50 p-4">

@@ -67,8 +67,8 @@ video2text/
 ### 1. Clone repo
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/video2text.git
-cd video2text
+git clone https://github.com/qddan/subtitle-generation.git
+cd subtitle-generation
 ```
 
 ### 2. Backend Setup
@@ -138,12 +138,20 @@ Open http://localhost:3000
 
 ## Environment Variables
 
-| Variable        | Default         | Description                                               |
-| --------------- | --------------- | --------------------------------------------------------- |
-| `LOCAL_FOLDER`  | `.`             | Folder scan mặc định                                      |
-| `OUTPUT_DIR`    | `./transcripts` | Thư mục lưu transcript                                    |
-| `WHISPER_MODEL` | `small`         | Model Whisper: `tiny`, `base`, `small`, `medium`, `large` |
-| `LANGUAGE`      | `vi`            | Ngôn ngữ: `vi` (Việt), `en` (English), etc.               |
+| Variable          | Default                                       | Description                                               |
+| ----------------- | --------------------------------------------- | --------------------------------------------------------- |
+| `LOCAL_FOLDER`    | `.`                                           | Folder scan mặc định                                      |
+| `OUTPUT_DIR`      | `./transcripts`                               | Thư mục lưu transcript                                    |
+| `WHISPER_MODEL`   | `small`                                       | Model Whisper: `tiny`, `base`, `small`, `medium`, `large` |
+| `LANGUAGE`        | `vi`                                          | Ngôn ngữ: `vi` (Việt), `en` (English), etc.               |
+| `ALLOWED_ORIGINS` | `http://localhost:3000,http://127.0.0.1:3000` | CORS allowed origins (comma-separated)                    |
+| `MAX_UPLOAD_SIZE` | `524288000`                                   | Max upload file size in bytes (default 500MB)             |
+
+**Frontend env** (set in Vercel or `.env.local`):
+
+| Variable               | Default                 | Description          |
+| ---------------------- | ----------------------- | -------------------- |
+| `NEXT_PUBLIC_API_BASE` | `http://localhost:8000` | Backend API base URL |
 
 ---
 
@@ -168,15 +176,32 @@ Open http://localhost:3000
 
 1. Push code to GitHub
 2. Go to [vercel.com](https://vercel.com) → Import repo
-3. Set root directory: `frontend`
-4. Deploy
+3. Set **Root Directory**: `frontend`
+4. Add env variable: `NEXT_PUBLIC_API_BASE` = `https://your-backend.onrender.com`
+5. Deploy
 
 ### Backend → Render
 
 1. Go to [render.com](https://render.com) → New Web Service
-2. Connect GitHub repo, root directory: `backend`
-3. Build: `pip install -r requirements.txt`
-4. Start: `uvicorn main:app --host 0.0.0.0 --port $PORT`
+2. Connect GitHub repo, set **Root Directory**: `backend`
+3. **Build Command**: `pip install -r requirements.txt`
+4. **Start Command**: `uvicorn main:app --host 0.0.0.0 --port $PORT`
+5. Add env variables:
+   - `WHISPER_MODEL` = `tiny` (free tier has limited RAM)
+   - `ALLOWED_ORIGINS` = `https://your-frontend.vercel.app`
+   - `LANGUAGE` = `vi`
+
+> **Note**: Render free tier spins down after inactivity. First request may take ~30s to wake up. Use `tiny` model on free tier for memory constraints.
+
+### Desktop App (Electron)
+
+```bash
+cd electron-app
+npm install
+npm run dist:mac   # macOS
+npm run dist:win   # Windows
+npm run dist:linux # Linux
+```
 
 ---
 
@@ -189,6 +214,16 @@ cd backend && source ../venv/bin/activate && uvicorn main:app --reload --port 80
 # Terminal 2: Frontend
 cd frontend && npm run dev
 ```
+
+---
+
+## Contributing
+
+1. Fork the repo
+2. Create a feature branch: `git checkout -b feature/my-feature`
+3. Commit changes: `git commit -m "Add my feature"`
+4. Push: `git push origin feature/my-feature`
+5. Open a Pull Request
 
 ---
 

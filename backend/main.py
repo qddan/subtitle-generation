@@ -1,17 +1,14 @@
 import asyncio
+import json
 import os
-import re
 import shutil
 import sqlite3
-import time
 from datetime import datetime
 from pathlib import Path
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException, Request, UploadFile, File, Form
+from fastapi import FastAPI, HTTPException, Request, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
-from pydantic import BaseModel
 from sse_starlette.sse import EventSourceResponse
 from typing import List
 
@@ -21,7 +18,8 @@ LOCAL_FOLDER = os.getenv("LOCAL_FOLDER", ".")
 OUTPUT_DIR = os.getenv("OUTPUT_DIR", "./transcripts")
 WHISPER_MODEL = os.getenv("WHISPER_MODEL", "small")
 LANGUAGE = os.getenv("LANGUAGE", "vi")
-
+ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000").split(",")
+MAX_UPLOAD_SIZE = int(os.getenv("MAX_UPLOAD_SIZE", str(500 * 1024 * 1024)))  # 500MB default
 
 DB_PATH = os.path.join(os.path.dirname(__file__), "db.sqlite3")
 
@@ -35,7 +33,7 @@ app = FastAPI(title="Video2Text API")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -77,30 +75,10 @@ def get_db():
     return conn
 
 
-def row_to_dict(row):
-    if row is None:
-        return None
-    return dict(row)
-
-
 def detect_filetype(filename: str) -> str | None:
     ext = Path(filename).suffix.lower()
-    mapping = {".mp4": "mp4", ".url": "url", ".txt": "txt", ".pptx": "slides", ".ppt": "slides"}
+    mapping = {".mp4": "mp4", ".txt": "txt"}
     return mapping.get(ext)
-
-
-# ---------------------------------------------------------------------------
-# Google Slides extraction (via Playwright)
-# ---------------------------------------------------------------------------
-def extract_slides_text(slides_url: str) -> str:
-    """Extract text from a Google Slides presentation using Playwright."""
-    match = re.search(r"/d/([a-zA-Z0-9_-]+)", slides_url)
-    if not match:
-        raise ValueError(f"Cannot extract Slides ID from: {slides_url}")
-    presentation_id = match.group(1)
-
-    from browser import get_slides_content_sync
-    return get_slides_content_sync(presentation_id)
 
 
 # ---------------------------------------------------------------------------
@@ -129,12 +107,15 @@ async def upload_files(files: List[UploadFile] = File(...)):
         if ftype not in ["mp4", "txt"]:
             continue
         
-        # Save file to upload directory
-        safe_filename = file.filename.replace(" ", "_")
+        # Sanitize filename — prevent path traversal
+        safe_filename = Path(file.filename).name.replace(" ", "_")
         filepath = os.path.join(UPLOAD_DIR, safe_filename)
         
+        content = await file.read()
+        if len(content) > MAX_UPLOAD_SIZE:
+            continue  # Skip files that are too large
+        
         with open(filepath, "wb") as f:
-            content = await file.read()
             f.write(content)
         
         # Check if already exists in DB
@@ -164,6 +145,9 @@ async def add_folder(request: Request):
     if not folder_path or not os.path.isdir(folder_path):
         raise HTTPException(status_code=400, detail="Invalid folder path")
     
+    # Resolve to absolute path to prevent path traversal
+    folder_path = os.path.realpath(folder_path)
+    
     db = get_db()
     now = datetime.utcnow().isoformat()
     added = []
@@ -174,7 +158,7 @@ async def add_folder(request: Request):
         for root, dirs, files in os.walk(folder_path):
             for f in files:
                 ftype = detect_filetype(f)
-                if ftype not in ["mp4", "txt", "url"]:
+                if ftype not in ["mp4", "txt"]:
                     continue
                 
                 fpath = os.path.join(root, f)
@@ -190,7 +174,7 @@ async def add_folder(request: Request):
     else:
         for f in os.listdir(folder_path):
             ftype = detect_filetype(f)
-            if ftype not in ["mp4", "txt", "url"]:
+            if ftype not in ["mp4", "txt"]:
                 continue
             
             fpath = os.path.join(folder_path, f)
@@ -320,39 +304,7 @@ async def process_file(file_id: int):
             word_count = result["word_count"]
             duration_sec = result["duration_sec"]
 
-        elif file["filetype"] == "url":
-            with open(file["filepath"], "r", encoding="utf-8") as f:
-                url_content = f.read().strip()
-            # Try to find a URL in the file
-            url_match = re.search(r"https?://[^\s]+", url_content)
-            if url_match:
-                slides_url = url_match.group(0)
-            else:
-                slides_url = url_content
-
-            text = extract_slides_text(slides_url)
-            from corrections import CORRECTIONS
-            for pattern, replacement in CORRECTIONS.items():
-                text = re.sub(pattern, replacement, text)
-
-            stem = Path(file["filename"]).stem
-            out_path = os.path.join(OUTPUT_DIR, f"{stem}.txt")
-            with open(out_path, "w", encoding="utf-8") as f:
-                f.write(text)
-            word_count = len(text.split())
-            duration_sec = 0
-
         elif file["filetype"] == "txt":
-            stem = Path(file["filename"]).stem
-            out_path = os.path.join(OUTPUT_DIR, f"{stem}.txt")
-            shutil.copy2(file["filepath"], out_path)
-            with open(out_path, "r", encoding="utf-8") as f:
-                text = f.read()
-            word_count = len(text.split())
-            duration_sec = 0
-
-        elif file["filetype"] == "slides":
-            # .pptx handled similarly to url
             stem = Path(file["filename"]).stem
             out_path = os.path.join(OUTPUT_DIR, f"{stem}.txt")
             shutil.copy2(file["filepath"], out_path)
@@ -444,7 +396,6 @@ async def progress_stream(request: Request):
                     break
                 try:
                     data = await asyncio.wait_for(q.get(), timeout=30)
-                    import json
                     yield {"event": "progress", "data": json.dumps(data)}
                 except asyncio.TimeoutError:
                     yield {"event": "ping", "data": ""}

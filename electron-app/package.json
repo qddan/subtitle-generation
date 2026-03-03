@@ -1,7 +1,7 @@
 {
-  "name": "ai-learning-hub-desktop",
+  "name": "video2text-desktop",
   "version": "1.0.0",
-  "description": "AI Learning Hub - Desktop App for NotebookLM Integration",
+  "description": "Video2Text - Convert video to text using Whisper AI",
   "main": "main.js",
   "scripts": {
     "start": "unset NODE_OPTIONS && electron .",
@@ -17,8 +17,8 @@
     "dist:linux": "electron-builder --linux"
   },
   "build": {
-    "appId": "com.ailearninghub.desktop",
-    "productName": "AI Learning Hub",
+    "appId": "com.video2text.desktop",
+    "productName": "Video2Text",
     "directories": {
       "output": "dist"
     },

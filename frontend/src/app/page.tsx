@@ -8,7 +8,6 @@ import {
   CheckCircle2,
   AlertCircle,
   Loader2,
-  Upload,
   FolderOpen,
   Video,
 } from "lucide-react";
@@ -253,6 +252,7 @@ export default function DashboardPage() {
               onChange={handleFileUpload}
               className="hidden"
               id="file-upload"
+              aria-label="Upload video or text files"
             />
             <Button
               variant="outline"
@@ -269,7 +269,11 @@ export default function DashboardPage() {
 
             {/* Folder Path Input */}
             <div className="flex flex-1 gap-2 min-w-[300px]">
+              <label htmlFor="folder-path" className="sr-only">
+                Folder path
+              </label>
               <input
+                id="folder-path"
                 type="text"
                 value={folderPath}
                 onChange={(e) => setFolderPath(e.target.value)}
@@ -333,7 +337,14 @@ export default function DashboardPage() {
                   {progressPct}%
                 </span>
               </div>
-              <div className="h-3 w-full rounded-full bg-secondary overflow-hidden">
+              <div
+                className="h-3 w-full rounded-full bg-secondary overflow-hidden"
+                role="progressbar"
+                aria-valuenow={progressPct}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-label="Transcription progress"
+              >
                 <div
                   className="h-3 rounded-full bg-gradient-to-r from-blue-500 to-emerald-500 transition-all duration-300"
                   style={{ width: `${progressPct}%` }}
