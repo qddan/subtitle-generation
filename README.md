@@ -7,7 +7,7 @@
 ![Next.js](https://img.shields.io/badge/Next.js-15-black.svg)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-teal.svg)
 
-**Live Demo**: [https://frontend-jet-theta-nvf68h8ewg.vercel.app](https://frontend-jet-theta-nvf68h8ewg.vercel.app)
+**Live Demo**: [https://subtitle-generation-steel.vercel.app](https://subtitle-generation-steel.vercel.app) | **API**: [https://subtitle-generation.onrender.com](https://subtitle-generation.onrender.com/docs)
 
 ---
 
